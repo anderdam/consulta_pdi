@@ -1,23 +1,22 @@
 from selenium import webdriver
 import time
 import pandas as pd
-import pygsheets
 
 # CONSTANTS
 TAG_NAME = 'tag name'
 
 # list of keys
-pdi_list = []
+rgi_list = []
 parar = False
 while not parar:
-    pdi = int(input("Insira um PDI ou 0 para parar: "))
-    if pdi == 0:
+    rgi = int(input("Insira um rgi ou 0 para parar: "))
+    if rgi == 0:
         parar = True
         pass
     else:
-        pdi_list.append(pdi)
+        rgi_list.append(rgi)
 
-key_list = pdi_list
+key_list = rgi_list
 
 # create a new Firefox driver
 driver = webdriver.Firefox()
