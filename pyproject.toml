@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "consulta-pdi"
+version = "0.1.0"
+description = ""
+authors = ["Anderson Damasceno <anderdam@gmail.com>"]
+readme = "README.md"
+packages = [{include = "consulta_pdi"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+selenium = "^4.8.0"
+pandas = "^1.5.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
