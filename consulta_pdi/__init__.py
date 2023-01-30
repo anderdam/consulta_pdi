@@ -24,21 +24,21 @@ while not parar:
 key_list = rgi_list
 
 # create a new Firefox driver
-driver = webdriver.Firefox()
 
-# navigate to the website
-url = 'https://agenciavirtual.sabesp.com.br/minhas-faturas'
-driver.get(url)
-
-# wait for the page to load
-time.sleep(2)
-
-# find the checkbox element and select it
-checkbox = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:chkSVR")
-checkbox.click()
 
 # iterate through the list of keys
 for key in key_list:
+    driver = webdriver.Firefox()
+    # navigate to the website
+    url = 'https://agenciavirtual.sabesp.com.br/minhas-faturas'
+    driver.get(url)
+
+    # wait for the page to load
+    time.sleep(2)
+
+    # find the checkbox element and select it
+    checkbox = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:chkSVR")
+    checkbox.click()
     # find the input element and enter the key
     input_element = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:pde")
     input_element.send_keys(key)
@@ -64,6 +64,7 @@ for key in key_list:
             'Situação': regex.find_situation(rows[0])
         },
         ignore_index=True)
+    driver.close()
 
 print(df)
 
@@ -92,8 +93,3 @@ for column_cells in ws.columns:
 
 # Save the workbook
 wb.save(file)
-# close the browser
-driver.close()
-
-
-# 0911757716
