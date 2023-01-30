@@ -1,18 +1,23 @@
-from selenium import webdriver
+import openpyxl
 import time
 import pandas as pd
+import regex
+from selenium import webdriver
 
 # CONSTANTS
 TAG_NAME = 'tag name'
 
+# Define Dataframe
+df = pd.DataFrame(columns=['RGI', 'Documento', 'Emissão', 'Valor', 'Vencimento', 'Situação'])
+
 # list of keys
+# rgi_list = ['0911757716', '0911755500', '0911755772']
 rgi_list = []
 parar = False
 while not parar:
-    rgi = int(input("Insira um rgi ou 0 para parar: "))
-    if rgi == 0:
+    rgi = str(input("Insira um rgi ou 0 para parar: "))
+    if rgi == '0':
         parar = True
-        pass
     else:
         rgi_list.append(rgi)
 
@@ -32,15 +37,13 @@ time.sleep(2)
 checkbox = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:chkSVR")
 checkbox.click()
 
-df = pd.DataFrame()
-
 # iterate through the list of keys
 for key in key_list:
     # find the input element and enter the key
     input_element = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:pde")
     input_element.send_keys(key)
 
-    time.sleep(2)
+    time.sleep(6)
     # wait for the user to submit the form manually
     # input("Press Enter to continue...")
 
@@ -48,25 +51,49 @@ for key in key_list:
     table_div = driver.find_element(by='class name', value="criaTabelaDinamica")
     childs_div = table_div.find_elements(by='xpath', value='./*')
 
-    for child in childs_div:
-        print(child.text)
-    # add the 'Key' column to the dataframe
-#     df['Key'] = key
-#     # find the table headers
-#     headers = [th.text for th in table.find_elements(by=TAG_NAME, value="th")]
-#     # iterate through each row
-#     for i, row in enumerate(table.find_elements(by=TAG_NAME, value="tr")):
-#         # find all columns in the row
-#         columns = row.find_elements(by=TAG_NAME, value="td")
-#         for j, column in enumerate(columns):
-#             # add the data to the corresponding column
-#             df.at[i, headers[j]] = column.text
-#
-# print(df)
-# df.to_excel("/home/anderdam/Documents/dataframe.xlsx", engine='openpyxl')
+    headers = [childs_div[0].text]
+    rows = [childs_div[1].text]
 
+    df = df.append(
+        {
+            'RGI': key,
+            'Documento': regex.find_doc(rows[0]),
+            'Emissão': regex.find_emi(rows[0]),
+            'Valor': regex.find_value(rows[0]),
+            'Vencimento': regex.find_venc(rows[0]),
+            'Situação': regex.find_situation(rows[0])
+        },
+        ignore_index=True)
+
+print(df)
+
+file = "/home/anderdam/Documents/lista de rgi.xlsx"
+df.to_excel(file, engine='openpyxl', index=False)
+
+# Load the workbook
+wb = openpyxl.load_workbook(file)
+# Select the active worksheet
+ws = wb.active
+
+# Loop through all the columns in the worksheet
+for column_cells in ws.columns:
+    # Determine the maximum length of the cell contents in the column
+    max_length = 0
+    column = column_cells[0].column_letter
+    for cell in column_cells:
+        try:  # Necessary to avoid error on empty cells
+            if len(str(cell.value)) > max_length:
+                max_length = len(cell.value)
+        except TypeError:
+            pass
+    # Set the column width based on the maximum length
+    adjusted_width = (max_length + 2) * 1.2
+    ws.column_dimensions[column].width = adjusted_width
+
+# Save the workbook
+wb.save(file)
 # close the browser
-#driver.close()
+driver.close()
 
 
 # 0911757716
