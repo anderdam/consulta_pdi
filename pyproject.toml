@@ -10,6 +10,7 @@ packages = [{include = "consulta_pdi"}]
 python = "^3.10"
 selenium = "^4.8.0"
 pandas = "^1.5.3"
+openpyxl = "^3.0.10"
 
 
 [build-system]

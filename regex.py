@@ -29,9 +29,10 @@ def find_value(row):
 
 
 def find_venc(row):
-    match = str(re.findall(r"R\$\s([\d,]+(\.\d{2})?)\s(\d{2}/\d{2}/\d{4})", row))
-    if match:
-        return str(match)
+    matches = re.findall(r"R\$\s([\d,]+(\.\d{2})?)\s(\d{2}/\d{2}/\d{4})", row)
+    if matches:
+        dates = [match[2] for match in matches]
+        return str(dates[0])
     else:
         return 'N/D'
 

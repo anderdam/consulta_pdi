@@ -2,3 +2,4 @@ selenium
 pandas
 pre-commit
 pygsheets
+openpyxl

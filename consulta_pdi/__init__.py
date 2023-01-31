@@ -1,3 +1,4 @@
+import shutil
 import openpyxl
 import time
 import pandas as pd
@@ -23,9 +24,6 @@ while not parar:
 
 key_list = rgi_list
 
-# create a new Firefox driver
-
-
 # iterate through the list of keys
 for key in key_list:
     driver = webdriver.Firefox()
@@ -43,7 +41,7 @@ for key in key_list:
     input_element = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:pde")
     input_element.send_keys(key)
 
-    time.sleep(6)
+    time.sleep(5)
     # wait for the user to submit the form manually
     # input("Press Enter to continue...")
 
@@ -54,16 +52,43 @@ for key in key_list:
     headers = [childs_div[0].text]
     rows = [childs_div[1].text]
 
+    time.sleep(1)
+
+    checkbox_faturas = driver.find_element(by='id', value="chkTodos")
+    if checkbox_faturas:
+        checkbox_faturas.click()
+        time.sleep(1)
+
+        checkbox_2via = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:perg1:0")
+        checkbox_2via.click()
+        time.sleep(1)
+
+        checkbox_envio = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:perg2:3")
+        checkbox_envio.click()
+        time.sleep(1)
+    else:
+        driver.save_screenshot(f'/home/anderdam/rgi/prints/{key}.png')
+
     df = df.append(
         {
             'RGI': key,
+            'Endereço': '',
             'Documento': regex.find_doc(rows[0]),
             'Emissão': regex.find_emi(rows[0]),
             'Valor': regex.find_value(rows[0]),
             'Vencimento': regex.find_venc(rows[0]),
             'Situação': regex.find_situation(rows[0])
-        },
-        ignore_index=True)
+        }, ignore_index=True)
+
+    # specify the path of the file to be moved
+    src_file = "/home/anderdam/Downloads/Segunda Via.PDF"
+
+    # specify the path of the destination folder
+    dst_folder = f"/home/anderdam/rgi/pdfs/{key}.pdf"
+
+    shutil.move(src_file, dst_folder)
+
+    time.sleep(5)
     driver.close()
 
 print(df)
