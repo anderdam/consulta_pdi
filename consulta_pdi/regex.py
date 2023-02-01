@@ -1,7 +1,7 @@
 import re
 
 
-def find_doc(row):
+def find_doc(row=None):
     match = re.search(r"[A-Z]{3}\d{11}", row)
     if match:
         sequence = match.group()
@@ -44,3 +44,11 @@ def find_situation(row):
         return str(sequence)
     else:
         return 'N/D'
+
+
+def find_pdf(text):
+    pdf_file = re.search(r'\b\w+.pdf\b', text)
+    if pdf_file:
+        return pdf_file.group()
+    else:
+        return None
