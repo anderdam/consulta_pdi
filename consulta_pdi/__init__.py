@@ -1,4 +1,6 @@
 import os
+import glob
+import shutil
 import PyPDF2
 import openpyxl
 import time
@@ -11,7 +13,14 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.common import NoSuchElementException
 
-from consulta_pdi import regex, constants
+from consulta_pdi import regex, constants, functions
+
+wait_slow = 10
+wait_intermediate = 5
+wait_fast = 1
+
+# list of keys
+key_list = ['0911757716', '0911755500', '0911755772']
 
 # CONSTANTS
 TAG_NAME = 'tag name'
@@ -28,9 +37,6 @@ df = pd.DataFrame(columns=[
     constants.SITUACAO
 ])
 
-# list of keys
-key_list = ['0911757716', '0911755500', '0911755772']
-
 # iterate through the list of keys
 for key in key_list:
     driver = webdriver.Firefox()
@@ -39,7 +45,7 @@ for key in key_list:
     driver.get(url)
 
     # wait for the page to load
-    time.sleep(1)
+    time.sleep(wait_fast)
 
     # find the checkbox element and select it
     checkbox = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:chkSVR")
@@ -48,14 +54,14 @@ for key in key_list:
     input_element = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:pde")
     input_element.send_keys(key)
 
-    time.sleep(3)
+    time.sleep(wait_intermediate - 2)
     # wait for the user to submit the form manually
     # input("Press Enter to continue...")
 
     rows = None
     # find the table element
     try:
-        table_load = WebDriverWait(driver, 8).until(ec.presence_of_element_located((By.CLASS_NAME, 'criaTabelaDinamica')))
+        table_load = functions.wait_table_load(driver, wait_slow, 'criaTabelaDinamica')
         print("Page is ready!")
     except TimeoutException:
         print("Loading took too much time!")
@@ -73,24 +79,24 @@ for key in key_list:
     else:
         childs_div = 'N/D'
 
-    time.sleep(1)
+    time.sleep(wait_fast)
 
     checkbox_faturas = driver.find_element(by='id', value="chkTodos")
     if checkbox_faturas:
         checkbox_faturas.click()
-        time.sleep(1)
+        time.sleep(wait_fast)
 
         try:
             checkbox_2via = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:perg1:0")
             if checkbox_2via:
                 checkbox_2via.click()
-                time.sleep(1)
+                time.sleep(wait_fast)
 
                 checkbox_envio = driver.find_element(by='id', value="_dxpminhasfaturas_WAR_dxpminhasfaturas_:minhasFaturasForm:perg2:3")
                 checkbox_envio.click()
             else:
                 driver.save_screenshot(f'/home/anderdam/rgi/prints/{key}.png')
-            time.sleep(1)
+            time.sleep(wait_fast)
         except NoSuchElementException:
             print('Element not found')
         finally:
@@ -98,7 +104,7 @@ for key in key_list:
     else:
         driver.save_screenshot(f'/home/anderdam/rgi/prints/{key}.png')
 
-    time.sleep(6)
+    time.sleep(wait_intermediate)
 
     if regex.find_doc(rows[0]) != 'N/D':
         # Define the path to the original file
@@ -137,6 +143,7 @@ for key in key_list:
         }, ignore_index=True)
 
     driver.close()
+    time.sleep(wait_fast)
 
 print(df)
 
@@ -165,3 +172,17 @@ for column_cells in ws.columns:
 
 # Save the workbook
 wb.save(file)
+
+new_file_name_list = key_list
+
+src_folder = '/home/anderdam/Downloads'
+dst_folder = '/home/anderdam/rgi/pdfs'
+
+pattern = '/*.PDF'
+
+for new_name in new_file_name_list:
+    pdfs = glob.glob(src_folder + pattern)
+    for pdf in pdfs:
+        file_name = os.path.basename(pdf)
+        shutil.move(pdf, dst_folder + new_name)
+        print(f'Arquivo {file_name} foi movido e renomeado para {new_name}')
